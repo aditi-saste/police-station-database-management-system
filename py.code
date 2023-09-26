@@ -1,0 +1,295 @@
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import ttk
+
+# Function to check if the entered username and password are correct
+def authenticate():
+    username = username_entry.get()
+    password = password_entry.get()
+
+    if username == "admin" and password == "pass":
+        import cx_Oracle
+        import tkinter as tk
+        from tkinter import ttk
+        from tkinter import messagebox
+        messagebox.showinfo("Authentication", "Login successful!")
+
+        # Function to insert data into the Oracle database
+        def insert_data():
+            try:
+                connection = cx_Oracle.connect('system/omkar@//localhost:1521/xe')
+                cursor = connection.cursor()
+
+                # Insert data into the crime_records table
+                crime_data = (
+                    crime_id.get(),
+                    crime_name.get(),
+                    crime_type.get(),
+                    crime_sentence.get()
+                )
+                cursor.execute("INSERT INTO criminal (id, name, crime_type, sentence) VALUES (:1, :2, :3, :4)", crime_data)
+
+                # Insert data into the investigate_officers table
+                officer_data = (
+                    officer_id.get(),
+                    officer_name.get(),
+                    officer_badge_number.get(),
+                    officer_department.get()
+                )
+                cursor.execute("INSERT INTO investigations (id, name, badge_number, department) VALUES (:1, :2, :3, :4)", officer_data)
+
+                # Commit the changes
+                connection.commit()
+
+                # Close the cursor and connection
+                cursor.close()
+                connection.close()
+
+                # Show a success message
+                messagebox.showinfo("Success", "Data inserted successfully!")
+
+            except cx_Oracle.Error as error:
+                # Show an error message if there's a database error
+                messagebox.showerror("Error", f"Database Error: {error}")
+
+        # Function to display records from the Oracle database
+        def display_records():
+            try:
+                connection = cx_Oracle.connect('system/omkar@//localhost:1521/xe')
+                cursor = connection.cursor()
+
+                # Fetch records from the crime_records table
+                cursor.execute("SELECT * FROM criminal")
+                crime_records = cursor.fetchall()
+
+                # Fetch records from the investigate_officers table
+                cursor.execute("SELECT * FROM investigations")
+                officers = cursor.fetchall()
+
+                # Close the cursor and connection
+                cursor.close()
+                connection.close()
+
+                # Clear the existing records in the tables
+                clear_table(crime_table)
+                clear_table(officer_table)
+
+                # Display the records in the tables
+                for record in crime_records:
+                    crime_table.insert('', 'end', values=record)
+                for record in officers:
+                    officer_table.insert('', 'end', values=record)
+
+            except cx_Oracle.Error as error:
+                # Show an error message if there's a database error
+                messagebox.showerror("Error", f"Database Error: {error}")
+
+        # Function to clear the existing records in a table
+        def clear_table(table):
+            for item in table.get_children():
+                table.delete(item)
+
+        # Function to drop tables
+        def drop_tables():
+            try:
+                connection = cx_Oracle.connect('system/omkar@//localhost:1521/xe')
+                cursor = connection.cursor()
+
+                # Drop the crime_records table
+                cursor.execute("DROP TABLE criminal")
+
+                # Drop the investigate_officers table
+                cursor.execute("DROP TABLE investigations")
+
+                # Commit the changes
+                connection.commit()
+
+                # Close the cursor and connection
+                cursor.close()
+                connection.close()
+
+                # Show a success message
+                messagebox.showinfo("Success", "Tables dropped successfully!")
+
+            except cx_Oracle.Error as error:
+                # Show an error message if there's a database error
+                messagebox.showerror("Error", f"Database Error: {error}")
+
+        def delete_all_records():
+            try:
+                connection = cx_Oracle.connect('system/omkar@//localhost:1521/xe')
+                cursor = connection.cursor()
+
+                # Delete all records from the criminal table
+                cursor.execute("DELETE FROM criminal")
+
+                # Delete all records from the investigate_officers table
+                cursor.execute("DELETE FROM investigations")
+
+                # Commit the changes
+                connection.commit()
+
+                # Close the cursor and connection
+                cursor.close()
+                connection.close()
+
+                # Show a success message
+                messagebox.showinfo("Success", "All records deleted successfully!")
+
+            except cx_Oracle.Error as error:
+                # Show an error message if there's a database error
+                messagebox.showerror("Error", f"Database Error: {error}")
+
+        # Create a Tkinter window
+        root = tk.Tk()
+        root.title("Criminal Records and Investigation Officers")
+        root.config(bg='cadetblue')
+
+        # Get the screen width and height
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+
+        # Calculate the X and Y positions for the top-middle placement
+        x = (screen_width - 800) // 2  # Adjust 800 to your desired window width
+        y = 0
+
+        # Set the geometry for the window
+        root.geometry(f"940x530+{x}+{y}")
+
+        # Tab Control for organizing display
+        tab_control = ttk.Notebook(root)
+        tab1 = ttk.Frame(tab_control)
+        tab2 = ttk.Frame(tab_control)
+        tab_control.add(tab1, text='Crime Records')
+        tab_control.add(tab2, text='Investigation Officers')
+        tab_control.grid(row=0, column=0, columnspan=8, padx=50, pady=20)
+
+        # Create columns for the tables
+        crime_columns = ('ID', 'Name', 'Crime Type', 'Sentence')
+        officer_columns = ('ID', 'Name', 'Badge Number', 'Department')
+
+        crime_table = ttk.Treeview(tab1, columns=crime_columns, show='headings', style="Treeview")
+        officer_table = ttk.Treeview(tab2, columns=officer_columns, show='headings', style="Treeview")
+
+        # Define a custom style for the tables
+        style = ttk.Style()
+        style.configure("Treeview", background="lightblue")  # Set your desired background color
+
+        # Set column headings
+        for col in crime_columns:
+            crime_table.heading(col, text=col)
+        for col in officer_columns:
+            officer_table.heading(col, text=col)
+
+        # Pack tables
+        crime_table.pack(fill='both', expand=True)
+        officer_table.pack(fill='both', expand=True)
+        # Pack tables
+        crime_table.grid(row=1, column=0, columnspan=8, padx=10, pady=10)
+        officer_table.grid(row=1, column=0, columnspan=8, padx=10, pady=10)
+
+        # Criminal Records section
+        criminal_frame = tk.Frame(tab1)
+        criminal_frame.grid(row=0, column=0, columnspan=8, padx=10, pady=10)
+
+        # Labels and Entry Widgets
+        crime_id_label = tk.Label(criminal_frame, text="Crime ID:", font=("Helvetica", 12), bg="lightgray")
+        crime_id_label.grid(row=0, column=0, padx=10, pady=5, sticky='e')
+        crime_id = tk.Entry(criminal_frame, font=("Helvetica", 12))
+        crime_id.grid(row=0, column=1, padx=10, pady=5)
+
+        crime_name_label = tk.Label(criminal_frame, text="Name:", font=("Helvetica", 12), bg="lightgray")
+        crime_name_label.grid(row=1, column=0, padx=10, pady=5, sticky='e')
+        crime_name = tk.Entry(criminal_frame, font=("Helvetica", 12))
+        crime_name.grid(row=1, column=1, padx=10, pady=5)
+
+        crime_type_label = tk.Label(criminal_frame, text="Crime Type:", font=("Helvetica", 12), bg="lightgray")
+        crime_type_label.grid(row=2, column=0, padx=10, pady=5, sticky='e')
+        crime_type = tk.Entry(criminal_frame, font=("Helvetica", 12))
+        crime_type.grid(row=2, column=1, padx=10, pady=5)
+
+        crime_sentence_label = tk.Label(criminal_frame, text="Sentence:", font=("Helvetica", 12), bg="lightgray")
+        crime_sentence_label.grid(row=3, column=0, padx=10, pady=5, sticky='e')
+        crime_sentence = tk.Entry(criminal_frame, font=("Helvetica", 12))
+        crime_sentence.grid(row=3, column=1, padx=10, pady=5)
+
+        # Investigation Officers section
+        officer_frame = tk.Frame(tab2)
+        officer_frame.grid(row=0, column=0, columnspan=8, padx=10, pady=10)
+
+        # Labels and Entry Widgets
+        officer_id_label = tk.Label(officer_frame, text="Officer ID:", font=("Helvetica", 12), bg="lightgray")
+        officer_id_label.grid(row=0, column=0, padx=10, pady=5, sticky='e')
+        officer_id = tk.Entry(officer_frame, font=("Helvetica", 12))
+        officer_id.grid(row=0, column=1, padx=10, pady=5)
+
+        officer_name_label = tk.Label(officer_frame, text="Name:", font=("Helvetica", 12), bg="lightgray")
+        officer_name_label.grid(row=1, column=0, padx=10, pady=5, sticky='e')
+        officer_name = tk.Entry(officer_frame, font=("Helvetica", 12))
+        officer_name.grid(row=1, column=1, padx=10, pady=5)
+
+        officer_badge_number_label = tk.Label(officer_frame, text="Badge Number:", font=("Helvetica", 12), bg="lightgray")
+        officer_badge_number_label.grid(row=2, column=0, padx=10, pady=5, sticky='e')
+        officer_badge_number = tk.Entry(officer_frame, font=("Helvetica", 12))
+        officer_badge_number.grid(row=2, column=1, padx=10, pady=5)
+
+        officer_department_label = tk.Label(officer_frame, text="Department:", font=("Helvetica", 12), bg="lightgray")
+        officer_department_label.grid(row=3, column=0, padx=10, pady=5, sticky='e')
+        officer_department = tk.Entry(officer_frame, font=("Helvetica", 12))
+        officer_department.grid(row=3, column=1, padx=10, pady=5)
+
+        # Insert button
+        insert_button = tk.Button(root, text="Insert Data", font=("Helvetica", 12), bg="green", fg="white", relief="raised", command=insert_data)
+        insert_button.grid(row=2, column=0, padx = (120, 0), pady=10)
+
+        # Display button
+        display_button = tk.Button(root, text="Display Records", font=("Helvetica", 12), bg="blue", fg="white", relief="raised", command=display_records)
+        display_button.grid(row=2, column=1, padx=10, pady=10)
+
+        # Delete All Records button
+        delete_all_button = tk.Button(root, text="Delete All Records", font=("Helvetica", 12), bg="red", fg="white", relief="raised", command=delete_all_records)
+        delete_all_button.grid(row=2, column=2, padx=10, pady=10)
+
+        # Drop Tables button
+        drop_tables_button = tk.Button(root, text="Drop Tables", font=("Helvetica", 12), bg="orange", fg="white", relief="raised", command=drop_tables)
+        drop_tables_button.grid(row=2, column=3, padx=10, pady=10)
+
+        # Start the Tkinter main loop
+        root.mainloop()
+
+    else:
+        from tkinter import messagebox
+        messagebox.showerror("ERROR", "Login failed!")
+
+# Create a Tkinter window
+root = tk.Tk()
+root.title("Login")
+root.geometry('300x200')
+root.config(bg='cadetblue')
+style = ttk.Style()
+style.configure("Rounded.TButton", borderwidth=5, relief="ridge", padding=3, bordercolor="gray", foreground="blue")
+f = ('Times', 14)
+f2 = ('Times', 12)
+
+# Create a label for the username
+username_label = tk.Label(root, text="Username:",font=f)
+username_label.pack(pady=10)
+
+# Create an entry field for the username
+username_entry = tk.Entry(root,font=f2)
+username_entry.pack()
+
+# Create a label for the password
+password_label = tk.Label(root, text="Password:",font=f)
+password_label.pack(pady=10)
+
+# Create an entry field for the password (set show="*" for hidden characters)
+password_entry = tk.Entry(root, show="*",font=f2)
+password_entry.pack()
+
+# Create a login button
+login_button = ttk.Button(root, text="Login", command=authenticate,style="Rounded.TButton")
+login_button.pack(pady=10)
+
+# Start the Tkinter main loop
+root.mainloop()
